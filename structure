@@ -1,0 +1,30 @@
+project_directory/
+├── app/
+│   ├── __init__.py
+│   ├── models.py
+│   ├── forms.py
+│   ├── scanner.py
+│   ├── utils.py
+│   ├── auth.py
+│   ├── main.py
+│   ├── tasks.py
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   ├── index.html
+│   │   ├── scan_results.html
+│   │   ├── scan_history.html
+│   │   └── upload.html
+│   └── static/
+│       ├── css/
+│       │   └── style.css
+│       └── js/
+│           └── main.js
+├── migrations/
+├── uploads/
+├── instance/
+├── venv/
+├── config.py
+├── requirements.txt
+└── run.py
