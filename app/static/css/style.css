@@ -1,0 +1,128 @@
+/* Custom styles for NMAP Scanner application */
+
+/* Global styles */
+body {
+    background-color: #f5f5f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Footer placement */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1 0 auto;
+}
+
+.footer {
+    flex-shrink: 0;
+}
+
+/* Card styles */
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: none;
+}
+
+.card-header {
+    font-weight: 500;
+    border-top-left-radius: 5px !important;
+    border-top-right-radius: 5px !important;
+}
+
+/* Scan status badges */
+.badge {
+    font-size: 0.9rem;
+    padding: 6px 10px;
+}
+
+/* Tables */
+.table th {
+    background-color: #f8f9fa;
+}
+
+.table-bordered {
+    border-color: #dee2e6;
+}
+
+/* Form elements */
+.form-control:focus, .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Network visualization */
+.network-map-container {
+    overflow: auto;
+    max-height: 600px;
+    text-align: center;
+}
+
+/* Alert styles */
+.alert {
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+/* Progress bar for scans */
+.progress {
+    height: 0.8rem;
+    border-radius: 0.25rem;
+    margin-top: 15px;
+}
+
+/* Custom hover effects */
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Code blocks in alerts */
+.alert code {
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 3px 5px;
+    border-radius: 3px;
+}
+
+/* Icons */
+.fas {
+    margin-right: 5px;
+}
+
+/* Port badges */
+.port-badge {
+    display: inline-block;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+/* Custom tab styles */
+.nav-tabs .nav-link {
+    color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .table-responsive {
+        border: none;
+    }
+    
+    .card-header h5 {
+        font-size: 1rem;
+    }
+    
+    .badge {
+        font-size: 0.8rem;
+    }
+}
