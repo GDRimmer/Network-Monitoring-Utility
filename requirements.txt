@@ -1,13 +1,23 @@
 Flask==2.0.1
 Flask-Login==0.5.0
+Flask-Migrate==3.1.0
 Flask-SQLAlchemy==2.5.1
 Flask-WTF==0.15.1
-python-nmap==0.7.1
 Werkzeug==2.0.1
+# Database
+SQLAlchemy==1.4.23
+alembic==1.7.1
+# Task Queue (for background processing)
 celery==5.1.2
 redis==3.5.3
-NetworkX==2.6.3
-matplotlib==3.4.3
+# Network Tools Integration
+python-nmap==0.7.1
+netifaces==0.11.0
+# Form Handling and Validation
+WTForms==2.3.3
 email-validator==1.1.3
-python-dotenv==0.19.0
-Pillow==8.3.1
+# Security
+werkzeug==2.0.1
+# Other Utilities
+Pillow==8.3.1  # For image processing (network maps)
+uuid==1.30
