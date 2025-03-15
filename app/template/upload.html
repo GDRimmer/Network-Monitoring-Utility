@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Upload Scan Results</h2>
+            <div>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus"></i> New Scan
+                </a>
+                <a href="{{ url_for('main.scan_history') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-history"></i> Scan History
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Upload NMAP Results</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.file.label(class="form-label") }}
+                        {{ form.file(class="form-control") }}
+                        <small class="form-text text-muted">
+                            Upload NMAP scan result files in plain text (.txt) or XML (.xml) format. 
+                            XML files provide more complete parsing.
+                        </small>
+                        {% for error in form.file.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> How to Generate NMAP Output Files</h5>
+                        <p>To create an NMAP output file for upload, use one of these commands:</p>
+                        <ul>
+                            <li><strong>Text output:</strong> <code>nmap -sS -T4 192.168.1.0/24 -oN scan.txt</code></li>
+                            <li><strong>XML output (recommended):</strong> <code>nmap -sS -T4 192.168.1.0/24 -oX scan.xml</code></li>
+                        </ul>
+                        <p>XML output provides more complete information and better parsing.</p>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

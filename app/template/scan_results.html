@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Scan Results</h2>
+            <div>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus"></i> New Scan
+                </a>
+                <a href="{{ url_for('main.scan_history') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-history"></i> Scan History
+                </a>
+                <form action="{{ url_for('main.delete_scan', scan_id=scan.id) }}" method="post" class="d-inline"
+                      onsubmit="return confirm('Are you sure you want to delete this scan? This cannot be undone.');">
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="fas fa-trash"></i> Delete Scan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Scan Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th width="15%">Target</th>
+                            <td>{{ scan.target }}</td>
+                            <th width="15%">Status</th>
+                            <td>
+                                <span id="scan-status" class="badge 
+                                    {% if scan.status == 'completed' %}bg-success
+                                    {% elif scan.status == 'running' %}bg-primary
+                                    {% elif scan.status == 'failed' %}bg-danger
+                                    {% elif scan.status == 'stopped' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ scan.status | capitalize }}
+                                </span>
+                                {% if scan.status == 'running' %}
+                                <a href="{{ url_for('main.stop_scan', scan_id=scan.id) }}" class="btn btn-sm btn-warning">Stop Scan</a>
+                                {% endif %}
+                                <button id="toggle-output-btn" class="btn btn-sm btn-info">Show Command Output</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Scan Type</th>
+                            <td>{{ scan.scan_type | capitalize }}</td>
+                            <th>Start Time</th>
+                            <td>{{ scan.start_time.strftime('%Y-%m-%d %H:%M:%S') if scan.start_time else 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Arguments</th>
+                            <td>{{ scan.arguments if scan.arguments else 'Default' }}</td>
+                            <th>End Time</th>
+                            <td>{{ scan.end_time.strftime('%Y-%m-%d %H:%M:%S') if scan.end_time else 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Duration</th>
+                            <td id="scan-duration">{{ scan.duration | round(2) if scan.duration else 'In progress...' }} seconds</td>
+                            <th>Hosts Found</th>
+                            <td id="host-count">{{ scan.host_count }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if scan.status == 'running' or scan.status == 'pending' %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h5><i class="fas fa-sync fa-spin"></i> Scan in Progress</h5>
+            <p>The scan is currently running. This page will automatically update when new results become available.</p>
+            <div class="progress mb-3">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+            </div>
+            
+            <!-- Live Command Output Panel -->
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0">Live Command Output</h6>
+                </div>
+                <div class="card-body">
+                    <pre id="command-output" class="bg-dark text-light p-3" style="max-height: 400px; overflow-y: auto; font-size: 0.85rem;">Loading scan output...</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if scan.hosts.count() > 0 %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Discovered Hosts</h5>
+                
+                <div class="input-group" style="max-width: 300px;">
+                    <input type="text" class="form-control" placeholder="Filter hosts..." id="host-filter" aria-label="Filter hosts">
+                    <button class="btn btn-outline-light" type="button">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="hosts-table">
+                        <thead>
+                            <tr>
+                                <th>IP Address</th>
+                                <th>Hostname</th>
+                                <th>MAC Address</th>
+                                <th>Operating System</th>
+                                <th>Open Ports</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for host in scan.hosts %}
+                            <tr>
+                                <td>{{ host.ip_address }}</td>
+                                <td>{{ host.hostname or 'Unknown' }}</td>
+                                <td>{{ host.mac_address or 'Unknown' }}</td>
+                                <td>{{ host.os or 'Unknown' }}</td>
+                                <td>
+                                    <span class="badge bg-{% if host.ports.count() > 0 %}primary{% else %}secondary{% endif %}">
+                                        {{ host.ports.count() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('main.host_details', host_id=host.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-info-circle"></i> Details
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <small>Total: {{ scan.hosts.count() }} hosts discovered</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% elif scan.status == 'completed' or scan.status == 'failed' %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-warning">
+            <h5><i class="fas fa-exclamation-triangle"></i> No Hosts Found</h5>
+            <p>The scan did not discover any hosts on the specified target. Please check your target specification and try again.</p>
+            <p>Current status: {{ scan.status }}</p>
+            <p>Host count: {{ scan.host_count }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if host_map %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Host Visualization</h5>
+            </div>
+            <div class="card-body">
+                <img src="{{ url_for('main.uploaded_file', filename=host_map) }}" class="img-fluid" alt="Host Map">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if scan.status == 'failed' %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-danger">
+            <h5><i class="fas fa-exclamation-circle"></i> Scan Failed</h5>
+            <p>The scan encountered an error and could not be completed. Please try again with different parameters.</p>
+            {% if scan.result_json and '"error"' in scan.result_json %}
+            <p><strong>Error details:</strong> {{ scan.get_result().error }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Command Output Panel (hidden by default for completed scans) -->
+<div class="row" id="command-output-container" style="display: none;">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Command Output</h5>
+            </div>
+            <div class="card-body">
+                <pre id="command-output-completed" class="bg-dark text-light p-3" style="max-height: 400px; overflow-y: auto; font-size: 0.85rem;">{{ scan.command_output|default('No command output available.') }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    {% if scan.status == 'running' or scan.status == 'pending' %}
+    // Poll for scan status updates
+    document.addEventListener('DOMContentLoaded', function() {
+        const commandOutput = document.getElementById('command-output');
+        let lastOutputLength = 0;
+        
+        function updateScanStatus() {
+            fetch('{{ url_for("main.scan_status", scan_id=scan.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Status update received:', data);
+                    
+                    // Update status
+                    const statusElem = document.getElementById('scan-status');
+                    statusElem.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                    
+                    // Update status badge class
+                    statusElem.className = 'badge';
+                    if (data.status === 'completed') {
+                        statusElem.classList.add('bg-success');
+                    } else if (data.status === 'running') {
+                        statusElem.classList.add('bg-primary');
+                    } else if (data.status === 'failed') {
+                        statusElem.classList.add('bg-danger');
+                    } else if (data.status === 'stopped') {
+                        statusElem.classList.add('bg-warning');
+                    } else {
+                        statusElem.classList.add('bg-secondary');
+                    }
+                    
+                    // Update duration and host count
+                    if (data.duration !== null) {
+                        document.getElementById('scan-duration').textContent = data.duration.toFixed(2) + ' seconds';
+                    }
+                    
+                    document.getElementById('host-count').textContent = data.host_count;
+                    
+                    // If scan is complete, reload the page to show results
+                    if (data.status === 'completed' || data.status === 'failed' || data.status === 'stopped') {
+                        console.log('Scan completed, reloading page');
+                        location.reload();
+                    } else {
+                        // Continue polling
+                        console.log('Continuing status polling...');
+                        setTimeout(updateScanStatus, 3000); // Poll every 3 seconds
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating scan status:', error);
+                    setTimeout(updateScanStatus, 5000);  // Retry after 5s if there's an error
+                });
+        }
+        
+        function updateCommandOutput() {
+            fetch('{{ url_for("main.scan_output", scan_id=scan.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.output) {
+                        commandOutput.textContent = data.output;
+                        
+                        // Auto-scroll to bottom if we're already near the bottom
+                        const isNearBottom = commandOutput.scrollHeight - commandOutput.clientHeight <= 
+                                           commandOutput.scrollTop + 50;
+                        
+                        // If we received new content or the user is near the bottom, scroll
+                        if (data.output.length > lastOutputLength || isNearBottom) {
+                            commandOutput.scrollTop = commandOutput.scrollHeight;
+                            lastOutputLength = data.output.length;
+                        }
+                    }
+                    
+                    // Continue polling for output if scan is running
+                    if (data.status === 'running' || data.status === 'pending') {
+                        setTimeout(updateCommandOutput, 1000); // Update output more frequently (1 second)
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating command output:', error);
+                    setTimeout(updateCommandOutput, 2000);
+                });
+        }
+        
+        // Start polling
+        console.log('Starting status polling...');
+        setTimeout(updateScanStatus, 2000); // Start status polling after 2 seconds
+        
+        // Start command output polling immediately and more frequently
+        updateCommandOutput();
+    });
+    {% endif %}
+    
+    // Toggle command output display for completed scans
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggle-output-btn');
+        const outputContainer = document.getElementById('command-output-container');
+        
+        if (toggleBtn && outputContainer) {
+            toggleBtn.addEventListener('click', function() {
+                if (outputContainer.style.display === 'none') {
+                    outputContainer.style.display = 'block';
+                    toggleBtn.textContent = 'Hide Command Output';
+                } else {
+                    outputContainer.style.display = 'none';
+                    toggleBtn.textContent = 'Show Command Output';
+                }
+            });
+        }
+        
+        // Host table filtering
+        const hostFilter = document.getElementById('host-filter');
+        const hostsTable = document.getElementById('hosts-table');
+        
+        if (hostFilter && hostsTable) {
+            hostFilter.addEventListener('keyup', function() {
+                const filterText = this.value.toLowerCase();
+                const rows = hostsTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(filterText) ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

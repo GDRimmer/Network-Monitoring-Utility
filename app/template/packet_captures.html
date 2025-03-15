@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Packet Captures</h2>
+            <div>
+                <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#captureForm">
+                    <i class="fas fa-plus"></i> New Capture
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="collapse" id="captureForm">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">New Packet Capture</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('main.start_capture') }}" method="post">
+                        {{ form.hidden_tag() }}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.interface.label(class="form-label") }}
+                                {{ form.interface(class="form-select") }}
+                                <small class="form-text text-muted">
+                                    Select the network interface to capture packets from.
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.packet_count.label(class="form-label") }}
+                                {{ form.packet_count(class="form-control") }}
+                                <small class="form-text text-muted">
+                                    Enter 0 to capture unlimited packets (until manually stopped).
+                                </small>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                {{ form.protocol.label(class="form-label") }}
+                                {{ form.protocol(class="form-select") }}
+                                <small class="form-text text-muted">
+                                    Optional: Filter by protocol.
+                                </small>
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.port.label(class="form-label") }}
+                                {{ form.port(class="form-control") }}
+                                <small class="form-text text-muted">
+                                    Optional: Filter by port (0 for all ports).
+                                </small>
+                            </div>
+                            <div class="col-md-4">
+                                {{ form.host.label(class="form-label") }}
+                                {{ form.host(class="form-control", placeholder="e.g., 192.168.1.1") }}
+                                <small class="form-text text-muted">
+                                    Optional: Filter by host IP address.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            {{ form.verbose(class="form-check-input") }}
+                            {{ form.verbose.label(class="form-check-label") }}
+                            <small class="form-text text-muted d-block">
+                                Enable for more detailed packet information.
+                            </small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-info-circle"></i> About Packet Captures</h5>
+                            <p>Packet captures allow you to monitor network traffic at a very detailed level. This can be useful for troubleshooting network issues, monitoring for suspicious activity, or analyzing application behavior.</p>
+                            <p><strong>Note:</strong> Packet capture requires privileges to put the network interface in promiscuous mode. These captures are saved as .pcap files which can be opened with tools like Wireshark for detailed analysis.</p>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if captures %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Capture History</h5>
+                <div class="input-group" style="max-width: 300px;">
+                    <input type="text" class="form-control" placeholder="Search captures..." id="capture-search" aria-label="Search captures">
+                    <button class="btn btn-outline-light" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="captures-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Interface</th>
+                                <th>Filters</th>
+                                <th>Status</th>
+                                <th>Started</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for capture in captures %}
+                            <tr>
+                                <td>{{ capture.id }}</td>
+                                <td>{{ capture.interface }}</td>
+                                <td>
+                                    {% if capture.protocol %}{{ capture.protocol }}{% endif %}
+                                    {% if capture.port %} port {{ capture.port }}{% endif %}
+                                    {% if capture.host %} host {{ capture.host }}{% endif %}
+                                    {% if not capture.protocol and not capture.port and not capture.host %}All traffic{% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if capture.status == 'completed' %}bg-success
+                                        {% elif capture.status == 'running' %}bg-primary
+                                        {% elif capture.status == 'failed' %}bg-danger
+                                        {% elif capture.status == 'stopped' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ capture.status | capitalize }}
+                                    </span>
+                                </td>
+                                <td>{{ capture.start_time.strftime('%Y-%m-%d %H:%M') if capture.start_time else 'N/A' }}</td>
+                                <td>{{ capture.duration | round(2) if capture.duration else 'In progress' }} sec</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('main.capture_details', capture_id=capture.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        {% if capture.status == 'running' %}
+                                        <a href="{{ url_for('main.stop_capture', capture_id=capture.id) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-stop"></i> Stop
+                                        </a>
+                                        {% endif %}
+                                        {% if capture.filename and capture.status != 'running' %}
+                                        <a href="{{ url_for('main.download_capture', capture_id=capture.id) }}" class="btn btn-sm btn-success">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                        {% endif %}
+                                        <form action="{{ url_for('main.delete_capture', capture_id=capture.id) }}" method="post" class="d-inline" 
+                                              onsubmit="return confirm('Are you sure you want to delete this capture? This cannot be undone.');">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h5><i class="fas fa-info-circle"></i> No Captures Found</h5>
+            <p>You haven't created any packet captures yet. Click the "New Capture" button to get started.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Packet Capture Guide</h5>
+            </div>
+            <div class="card-body">
+                <p>Packet capturing with tcpdump allows you to monitor network traffic in detail. Here's how to use the various options:</p>
+                
+                <div class="accordion" id="captureGuideAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                Capture Interfaces
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#captureGuideAccordion">
+                            <div class="accordion-body">
+                                <p>The interface is the network device you want to monitor:</p>
+                                <ul>
+                                    <li><strong>eth0, eth1, etc.</strong> - Ethernet interfaces</li>
+                                    <li><strong>wlan0, wlan1, etc.</strong> - Wireless interfaces</li>
+                                    <li><strong>lo</strong> - Loopback interface (localhost traffic)</li>
+                                    <li><strong>any</strong> - Capture on all interfaces (if available)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Protocol Filters
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#captureGuideAccordion">
+                            <div class="accordion-body">
+                                <p>Filter packets by protocol:</p>
+                                <ul>
+                                    <li><strong>tcp</strong> - Capture only TCP packets</li>
+                                    <li><strong>udp</strong> - Capture only UDP packets</li>
+                                    <li><strong>icmp</strong> - Capture only ICMP packets (ping, etc.)</li>
+                                    <li><strong>arp</strong> - Capture only ARP packets</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Port and Host Filtering
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#captureGuideAccordion">
+                            <div class="accordion-body">
+                                <p>Narrow your capture by port or host:</p>
+                                <ul>
+                                    <li><strong>Port filtering</strong> - Enter a port number to capture only traffic on that port (e.g., 80 for HTTP, 443 for HTTPS)</li>
+                                    <li><strong>Host filtering</strong> - Enter an IP address to capture only traffic to/from that host</li>
+                                    <li><strong>Combined filtering</strong> - You can combine protocol, port, and host filters to be very specific about what traffic you want to capture</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFour">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                Working with Capture Files
+                            </button>
+                        </h2>
+                        <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#captureGuideAccordion">
+                            <div class="accordion-body">
+                                <p>After capturing packets:</p>
+                                <ul>
+                                    <li>The captured packets are saved in <strong>.pcap</strong> format</li>
+                                    <li>Download the file and open it with <strong>Wireshark</strong> for detailed analysis</li>
+                                    <li>Large capture files can consume significant disk space, so consider using packet count limits for busy networks</li>
+                                    <li>For privacy and security reasons, delete captures when you no longer need them</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality for the captures table
+        const searchInput = document.getElementById('capture-search');
+        const capturesTable = document.getElementById('captures-table');
+        
+        if (searchInput && capturesTable) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = capturesTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

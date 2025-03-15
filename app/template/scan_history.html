@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Scan History</h2>
+            <div class="btn-group">
+                <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> New Scan
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if failed_count > 0 or old_count > 0 %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex flex-wrap gap-2">
+            {% if failed_count > 0 %}
+            <form action="{{ url_for('main.delete_failed_scans') }}" method="post" class="d-inline" 
+                  onsubmit="return confirm('Are you sure you want to delete all {{ failed_count }} failed scans? This cannot be undone.');">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Delete {{ failed_count }} Failed Scan{% if failed_count > 1 %}s{% endif %}
+                </button>
+            </form>
+            {% endif %}
+            
+            {% if old_count > 0 %}
+            <form action="{{ url_for('main.delete_old_scans') }}" method="post" class="d-inline"
+                  onsubmit="return confirm('Are you sure you want to delete all {{ old_count }} scans older than 30 days? This cannot be undone.');">
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-trash"></i> Delete {{ old_count }} Old Scan{% if old_count > 1 %}s{% endif %}
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if scans %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Your Scans</h5>
+                <div class="input-group" style="max-width: 300px;">
+                    <input type="text" class="form-control" placeholder="Search scans..." id="scan-search" aria-label="Search scans">
+                    <button class="btn btn-outline-light" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="scans-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Target</th>
+                                <th>Scan Type</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th>Hosts</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for scan in scans %}
+                            <tr class="{% if scan.status == 'failed' %}table-danger{% elif scan.start_time and (now - scan.start_time).days > 30 %}table-warning{% endif %}">
+                                <td>{{ scan.id }}</td>
+                                <td>{{ scan.target }}</td>
+                                <td>{{ scan.scan_type | capitalize }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if scan.status == 'completed' %}bg-success
+                                        {% elif scan.status == 'running' %}bg-primary
+                                        {% elif scan.status == 'failed' %}bg-danger
+                                        {% elif scan.status == 'stopped' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ scan.status | capitalize }}
+                                    </span>
+                                </td>
+                                <td>{{ scan.start_time.strftime('%Y-%m-%d %H:%M') if scan.start_time else 'N/A' }}</td>
+                                <td>{{ scan.duration | round(2) if scan.duration else 'N/A' }} sec</td>
+                                <td>
+                                    {% if scan.host_count > 0 %}
+                                        <span class="badge bg-info">{{ scan.host_count }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">0</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('main.scan_results', scan_id=scan.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        <form action="{{ url_for('main.delete_scan', scan_id=scan.id) }}" method="post" class="d-inline" 
+                                            onsubmit="return confirm('Are you sure you want to delete this scan? This cannot be undone.');">
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <small>Showing {{ scans|length }} scans • {{ failed_count }} failed • {{ old_count }} older than 30 days</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h5><i class="fas fa-info-circle"></i> No Scans Found</h5>
+            <p>You haven't run any scans yet. Click the "New Scan" button to get started.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality for the scan table
+        const searchInput = document.getElementById('scan-search');
+        const scansTable = document.getElementById('scans-table');
+        
+        if (searchInput && scansTable) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = scansTable.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        }
+        
+        // Highlight old scans or failed scans
+        const rows = document.querySelectorAll('#scans-table tbody tr');
+        rows.forEach(row => {
+            // Add tooltip to show age for old scans
+            if (row.classList.contains('table-warning')) {
+                row.setAttribute('title', 'This scan is older than 30 days');
+            }
+        });
+    });
+</script>
+{% endblock %}

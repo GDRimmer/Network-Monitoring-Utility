@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Packet Capture Details</h2>
+            <div>
+                <a href="{{ url_for('main.packet_captures') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Captures
+                </a>
+                {% if capture.status == 'running' %}
+                <a href="{{ url_for('main.stop_capture', capture_id=capture.id) }}" class="btn btn-warning">
+                    <i class="fas fa-stop"></i> Stop Capture
+                </a>
+                {% endif %}
+                {% if capture.filename and capture.status != 'running' %}
+                <a href="{{ url_for('main.download_capture', capture_id=capture.id) }}" class="btn btn-success">
+                    <i class="fas fa-download"></i> Download PCAP
+                </a>
+                {% endif %}
+                <form action="{{ url_for('main.delete_capture', capture_id=capture.id) }}" method="post" class="d-inline" 
+                      onsubmit="return confirm('Are you sure you want to delete this capture? This cannot be undone.');">
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Capture Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th width="20%">Status</th>
+                            <td>
+                                <span id="capture-status" class="badge 
+                                    {% if capture.status == 'completed' %}bg-success
+                                    {% elif capture.status == 'running' %}bg-primary
+                                    {% elif capture.status == 'failed' %}bg-danger
+                                    {% elif capture.status == 'stopped' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ capture.status | capitalize }}
+                                </span>
+                            </td>
+                            <th width="20%">Interface</th>
+                            <td>{{ capture.interface }}</td>
+                        </tr>
+                        <tr>
+                            <th>Start Time</th>
+                            <td id="start-time">{{ capture.start_time.strftime('%Y-%m-%d %H:%M:%S') if capture.start_time else 'N/A' }}</td>
+                            <th>End Time</th>
+                            <td id="end-time">{{ capture.end_time.strftime('%Y-%m-%d %H:%M:%S') if capture.end_time else 'In progress' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Duration</th>
+                            <td id="duration">{{ capture.duration | round(2) if capture.duration else 'In progress' }} seconds</td>
+                            <th>Packet Count</th>
+                            <td>{{ capture.packet_count if capture.packet_count > 0 else 'Unlimited' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Protocol</th>
+                            <td>{{ capture.protocol if capture.protocol else 'All' }}</td>
+                            <th>Port</th>
+                            <td>{{ capture.port if capture.port else 'All ports' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Host</th>
+                            <td>{{ capture.host if capture.host else 'All hosts' }}</td>
+                            <th>Output File</th>
+                            <td>{{ capture.filename if capture.filename else 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Verbose Mode</th>
+                            <td colspan="3">{{ 'Yes' if capture.verbose else 'No' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Command and Output</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label"><strong>tcpdump Command:</strong></label>
+                    <pre class="bg-light p-3">{{ capture.command }}</pre>
+                </div>
+                
+                <div>
+                    <label class="form-label"><strong>Command Output:</strong></label>
+                    <pre id="command-output" class="bg-dark text-light p-3" style="max-height: 400px; overflow-y: auto; font-size: 0.85rem;">{{ capture.command_output|default('No output available.') }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if capture.status == 'failed' %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-danger">
+            <h5><i class="fas fa-exclamation-circle"></i> Capture Failed</h5>
+            <p>The packet capture encountered an error and could not be completed. Please check the command output for details.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Next Steps</h5>
+            </div>
+            <div class="card-body">
+                <p>After downloading the PCAP file, you can analyze it with Wireshark or similar tools to perform in-depth packet inspection.</p>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Wireshark Analysis</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>Wireshark offers powerful features for analyzing your packet captures:</p>
+                                <ul>
+                                    <li>Protocol dissection and color coding</li>
+                                    <li>Follow TCP/UDP streams</li>
+                                    <li>Filter packets with display filters</li>
+                                    <li>Statistical analysis</li>
+                                    <li>Export specific packets or conversations</li>
+                                </ul>
+                                <a href="https://www.wireshark.org/" target="_blank" class="btn btn-outline-primary">
+                                    <i class="fas fa-external-link-alt"></i> Get Wireshark
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Command-line Tools</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>You can also analyze PCAP files using these command line tools:</p>
+                                <ul>
+                                    <li><strong>tcpdump -r file.pcap</strong> - Read and display packets from a file</li>
+                                    <li><strong>tshark -r file.pcap</strong> - Terminal version of Wireshark</li>
+                                    <li><strong>capinfos file.pcap</strong> - Display statistics about a capture file</li>
+                                    <li><strong>editcap</strong> - Edit capture files (split, merge, etc.)</li>
+                                    <li><strong>mergecap</strong> - Merge multiple capture files</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    {% if capture.status == 'running' %}
+    // Poll for capture status updates
+    document.addEventListener('DOMContentLoaded', function() {
+        const commandOutput = document.getElementById('command-output');
+        let lastOutputLength = 0;
+        
+        function updateCaptureStatus() {
+            fetch('{{ url_for("main.capture_status", capture_id=capture.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Status update received:', data);
+                    
+                    // Update status
+                    const statusElem = document.getElementById('capture-status');
+                    statusElem.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                    
+                    // Update status badge class
+                    statusElem.className = 'badge';
+                    if (data.status === 'completed') {
+                        statusElem.classList.add('bg-success');
+                    } else if (data.status === 'running') {
+                        statusElem.classList.add('bg-primary');
+                    } else if (data.status === 'failed') {
+                        statusElem.classList.add('bg-danger');
+                    } else if (data.status === 'stopped') {
+                        statusElem.classList.add('bg-warning');
+                    } else {
+                        statusElem.classList.add('bg-secondary');
+                    }
+                    
+                    // Update duration and start time
+                    if (data.duration !== null) {
+                        document.getElementById('duration').textContent = data.duration.toFixed(2) + ' seconds';
+                    }
+                    
+                    // If capture is complete, reload the page to show results
+                    if (data.status === 'completed' || data.status === 'failed' || data.status === 'stopped') {
+                        console.log('Capture completed, reloading page');
+                        location.reload();
+                    } else {
+                        // Continue polling
+                        console.log('Continuing status polling...');
+                        setTimeout(updateCaptureStatus, 3000); // Poll every 3 seconds
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating capture status:', error);
+                    setTimeout(updateCaptureStatus, 5000);  // Retry after 5s if there's an error
+                });
+        }
+        
+        function updateCommandOutput() {
+            fetch('{{ url_for("main.capture_output", capture_id=capture.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.output) {
+                        commandOutput.textContent = data.output;
+                        
+                        // Auto-scroll to bottom if we're already near the bottom
+                        const isNearBottom = commandOutput.scrollHeight - commandOutput.clientHeight <= 
+                                           commandOutput.scrollTop + 50;
+                        
+                        // If we received new content or the user is near the bottom, scroll
+                        if (data.output.length > lastOutputLength || isNearBottom) {
+                            commandOutput.scrollTop = commandOutput.scrollHeight;
+                            lastOutputLength = data.output.length;
+                        }
+                    }
+                    
+                    // Continue polling for output if capture is running
+                    if (data.status === 'running' || data.status === 'pending') {
+                        setTimeout(updateCommandOutput, 1000); // Update output more frequently (1 second)
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating command output:', error);
+                    setTimeout(updateCommandOutput, 2000);
+                });
+        }
+        
+        // Start polling
+        console.log('Starting status polling...');
+        setTimeout(updateCaptureStatus, 2000); // Start status polling after 2 seconds
+        
+        // Start command output polling immediately and more frequently
+        updateCommandOutput();
+    });
+    {% endif %}
+</script>
+{% endblock %}

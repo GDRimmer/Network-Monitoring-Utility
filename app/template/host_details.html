@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Host Details</h2>
+            <div>
+                <a href="{{ url_for('main.scan_results', scan_id=scan.id) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Scan Results
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Host Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="30%">IP Address</th>
+                                <td>{{ host.ip_address }}</td>
+                            </tr>
+                            <tr>
+                                <th>Hostname</th>
+                                <td>{{ host.hostname or 'Unknown' }}</td>
+                            </tr>
+                            <tr>
+                                <th>MAC Address</th>
+                                <td>{{ host.mac_address or 'Unknown' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Operating System</th>
+                                <td>{{ host.os or 'Unknown' }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Host Overview</h6>
+                            </div>
+                            <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-desktop fa-5x text-primary"></i>
+                                </div>
+                                <div class="badge bg-info mb-2">{{ host.ports.count() }} Open Ports</div>
+                                <div class="badge bg-secondary mb-2">{{ host.os or 'OS Unknown' }}</div>
+                                {% if host.mac_address %}
+                                <small class="text-muted">MAC: {{ host.mac_address }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Open Ports</h5>
+            </div>
+            <div class="card-body">
+                {% if host.ports.count() > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Port</th>
+                                <th>Protocol</th>
+                                <th>State</th>
+                                <th>Service</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for port in host.ports %}
+                            <tr>
+                                <td>{{ port.port_number }}</td>
+                                <td>{{ port.protocol }}</td>
+                                <td>
+                                    <span class="badge {% if port.state == 'open' %}bg-success
+                                                      {% elif port.state == 'filtered' %}bg-warning
+                                                      {% else %}bg-secondary{% endif %}">
+                                        {{ port.state }}
+                                    </span>
+                                </td>
+                                <td>{{ port.service or 'Unknown' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p>No open ports were found on this host.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Common Port Information -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Common Ports Reference</h5>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="commonPortsAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="webServicesHeading">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#webServicesCollapse" aria-expanded="false" aria-controls="webServicesCollapse">
+                                Web Services
+                            </button>
+                        </h2>
+                        <div id="webServicesCollapse" class="accordion-collapse collapse" aria-labelledby="webServicesHeading" data-bs-parent="#commonPortsAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>80/tcp</strong> - HTTP</li>
+                                    <li><strong>443/tcp</strong> - HTTPS</li>
+                                    <li><strong>8080/tcp</strong> - HTTP Alternate</li>
+                                    <li><strong>8443/tcp</strong> - HTTPS Alternate</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="remoteAccessHeading">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#remoteAccessCollapse" aria-expanded="false" aria-controls="remoteAccessCollapse">
+                                Remote Access
+                            </button>
+                        </h2>
+                        <div id="remoteAccessCollapse" class="accordion-collapse collapse" aria-labelledby="remoteAccessHeading" data-bs-parent="#commonPortsAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>22/tcp</strong> - SSH</li>
+                                    <li><strong>23/tcp</strong> - Telnet</li>
+                                    <li><strong>3389/tcp</strong> - RDP (Remote Desktop)</li>
+                                    <li><strong>5900/tcp</strong> - VNC</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="mailServicesHeading">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mailServicesCollapse" aria-expanded="false" aria-controls="mailServicesCollapse">
+                                Mail Services
+                            </button>
+                        </h2>
+                        <div id="mailServicesCollapse" class="accordion-collapse collapse" aria-labelledby="mailServicesHeading" data-bs-parent="#commonPortsAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>25/tcp</strong> - SMTP</li>
+                                    <li><strong>110/tcp</strong> - POP3</li>
+                                    <li><strong>143/tcp</strong> - IMAP</li>
+                                    <li><strong>465/tcp</strong> - SMTPS</li>
+                                    <li><strong>587/tcp</strong> - SMTP Submission</li>
+                                    <li><strong>993/tcp</strong> - IMAPS</li>
+                                    <li><strong>995/tcp</strong> - POP3S</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
