@@ -1,1 +1,112 @@
-Here is a description of the project
+# Network Monitoring Utility - Structure
+
+## Overview
+
+This application is a comprehensive network monitoring utility built with Flask that integrates multiple network tools:
+
+1. **NMAP Scanner**: Run configurable network scans with customizable parameters
+2. **ARP Table Viewer**: View and manage the system's ARP table cache
+3. **TCPDump Packet Capture**: Capture and analyze network packets
+
+## Core Components
+
+### 1. Application Setup and Configuration
+- `__init__.py`: Main Flask application initialization
+- `config.py`: Configuration settings for the application
+- `create_db.py`: Database initialization script
+- `run.py`: Application entry point
+
+### 2. User Authentication
+- `auth.py`: User login, registration, and authentication
+- User model with secure password handling
+
+### 3. NMAP Scanning Module
+- **Controllers**:
+  - `main.py`: Contains routes for NMAP scanning functionality
+  - Supports starting, monitoring, and viewing scan results
+
+- **Models**:
+  - `Scan`: Stores scan configurations and results
+  - `Host`: Discovered hosts from scans
+  - `Port`: Open ports on discovered hosts
+
+- **Supporting Components**:
+  - `scanner.py`: Core NMAP integration and result parsing
+  - `utils.py`: Helper functions for sanitizing inputs and generating visualizations
+  - `test_nmap.py`: Testing script for NMAP functionality
+
+### 4. ARP Table Module
+- **Controllers**:
+  - Routes in `main.py` for ARP table management
+  - Support for viewing, refreshing, and exporting ARP data
+
+- **Supporting Components**:
+  - `utils_arp.py`: Functions for interacting with the system's ARP cache
+  - MAC vendor database for identifying device manufacturers
+
+### 5. Packet Capture Module
+- **Controllers**:
+  - Routes in `main.py` for packet capture operations
+  - Support for starting, stopping, and downloading captures
+
+- **Models**:
+  - `PacketCapture`: Stores capture configurations and metadata
+
+- **Supporting Components**:
+  - `utils_tcpdump.py`: Functions for running tcpdump in the background
+  - Management of capture processes and files
+
+### 6. User Interface
+- **Templates**:
+  - `base.html`: Base template with navigation
+  - NMAP-related views: `index.html`, `scan_results.html`, `scan_history.html`, etc.
+  - ARP-related views: `arp_table.html`
+  - TCPDump-related views: `packet_captures.html`, `capture_details.html`
+
+- **Static Assets**:
+  - `style.css`: Custom styling
+  - `main.js`: Client-side functionality
+
+## Database Schema
+
+1. **User**
+   - Authentication information
+   - Relationship to scans and captures
+
+2. **Scan**
+   - Target, scan type, arguments
+   - Status and timestamps
+   - Result data and command output
+   - Relationship to discovered hosts
+
+3. **Host**
+   - IP address, hostname, MAC address, OS
+   - Relationship to discovered ports
+
+4. **Port**
+   - Port number, protocol, service, state
+   - Relationship to host
+
+5. **PacketCapture**
+   - Interface, protocol filters, host/port filters
+   - Status and timestamps
+   - Capture file metadata
+
+## Background Processing
+
+- Threading model for long-running tasks
+- Process management for NMAP scans and TCPDump captures
+- Status tracking and real-time updates
+
+## File Management
+
+- Upload directory for scan results and capture files
+- Secure file naming and access control
+- Support for downloading capture files
+
+## Security Features
+
+- Input sanitization for command arguments
+- Access control based on user ownership
+- Secure password storage
+- Protection against malicious NMAP arguments
