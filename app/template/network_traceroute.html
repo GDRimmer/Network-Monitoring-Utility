@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-route"></i> Traceroute</h2>
+            <div>
+                <a href="{{ url_for('main.network_utilities') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Utilities
+                </a>
+                <a href="https://linux.die.net/man/8/traceroute" target="_blank" class="btn btn-outline-info">
+                    <i class="fas fa-external-link-alt"></i> Documentation
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Traceroute Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('main.network_traceroute') }}">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.host.label(class="form-label") }}
+                        {{ form.host(class="form-control", placeholder="e.g., google.com or 192.168.1.1") }}
+                        <small class="form-text text-muted">
+                            Enter hostname or IP address to trace.
+                        </small>
+                        {% for error in form.host.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.max_hops.label(class="form-label") }}
+                            {{ form.max_hops(class="form-control") }}
+                            <small class="form-text text-muted">
+                                Maximum number of hops to trace.
+                            </small>
+                            {% for error in form.max_hops.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.timeout.label(class="form-label") }}
+                            {{ form.timeout(class="form-control") }}
+                            <small class="form-text text-muted">
+                                Timeout in seconds for each probe.
+                            </small>
+                            {% for error in form.timeout.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">About Traceroute</h5>
+            </div>
+            <div class="card-body">
+                <p>Traceroute is a network diagnostic tool used to track the pathway taken by a packet on an IP network from source to destination. It also shows the time taken by a packet to travel from one router to another in the path.</p>
+                
+                <h6>How it works:</h6>
+                <p>Traceroute works by sending packets with gradually increasing TTL (Time To Live) values, starting with a TTL value of 1. As each router receives the packet, it decrements the TTL by 1. When a router decrements the TTL to 0, it returns an ICMP "Time Exceeded" message. This process continues until the destination is reached.</p>
+                
+                <h6>Common uses:</h6>
+                <ul>
+                    <li>Troubleshooting network connectivity issues</li>
+                    <li>Identifying slow network segments</li>
+                    <li>Detecting routing problems</li>
+                    <li>Understanding network topology</li>
+                    <li>Verifying network paths</li>
+                </ul>
+                
+                <p class="mt-3 mb-0">
+                    <a href="https://www.cloudflare.com/learning/network-layer/what-is-traceroute/" target="_blank" class="text-decoration-none">
+                        <i class="fas fa-book"></i> Learn more about how traceroute works
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Traceroute Commands</h5>
+            </div>
+            <div class="card-body">
+                {% if past_commands %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Host</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for command in past_commands %}
+                            <tr>
+                                <td>{{ command.command_text.split()[-1] }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if command.status == 'completed' %}bg-success
+                                        {% elif command.status == 'running' %}bg-primary
+                                        {% elif command.status == 'failed' %}bg-danger
+                                        {% elif command.status == 'stopped' %}bg-warning
+                                        {% else %}bg-secondary{% endif %}">
+                                        {{ command.status | capitalize }}
+                                    </span>
+                                </td>
+                                <td>{{ command.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('main.network_command_results', command_id=command.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <p>No traceroute commands have been executed yet. Use the form to start a new trace.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

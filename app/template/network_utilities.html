@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Network Utilities</h2>
+            <div>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h5><i class="fas fa-info-circle"></i> Network Utilities Suite</h5>
+            <p>This suite provides a set of network diagnostic and testing tools to help you troubleshoot network issues and understand network behavior.</p>
+            <p>Select a tool below to get started.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    <!-- Ping -->
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-exchange-alt"></i> Ping</h5>
+            </div>
+            <div class="card-body">
+                <p>Test basic connectivity to a host by sending ICMP echo requests and measuring response time.</p>
+                <p><strong>Use for:</strong> Checking if a host is reachable and measuring round-trip time.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.network_ping') }}" class="btn btn-primary">
+                        <i class="fas fa-angle-right"></i> Use Ping Tool
+                    </a>
+                    <a href="https://linux.die.net/man/8/ping" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt"></i> Official Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Traceroute -->
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-route"></i> Traceroute</h5>
+            </div>
+            <div class="card-body">
+                <p>Trace the path that packets take to reach a destination, showing all intermediate hops.</p>
+                <p><strong>Use for:</strong> Identifying routing issues and network bottlenecks.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.network_traceroute') }}" class="btn btn-success">
+                        <i class="fas fa-angle-right"></i> Use Traceroute Tool
+                    </a>
+                    <a href="https://linux.die.net/man/8/traceroute" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt"></i> Official Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dig (DNS Lookup) -->
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-search"></i> Dig (DNS Lookup)</h5>
+            </div>
+            <div class="card-body">
+                <p>Query DNS servers to retrieve various DNS records for a domain name.</p>
+                <p><strong>Use for:</strong> Troubleshooting DNS issues and verifying DNS configurations.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.network_dig') }}" class="btn btn-info">
+                        <i class="fas fa-angle-right"></i> Use Dig Tool
+                    </a>
+                    <a href="https://www.isc.org/docs/bind9/current/html/dig.html" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt"></i> Official Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Iperf -->
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-tachometer-alt"></i> Iperf</h5>
+            </div>
+            <div class="card-body">
+                <p>Measure network performance between two hosts by measuring bandwidth and quality metrics.</p>
+                <p><strong>Use for:</strong> Testing network throughput and performance between endpoints.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.network_iperf') }}" class="btn btn-warning">
+                        <i class="fas fa-angle-right"></i> Use Iperf Tool
+                    </a>
+                    <a href="https://iperf.fr/iperf-doc.php" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt"></i> Official Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IP Route -->
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-map"></i> IP Route</h5>
+            </div>
+            <div class="card-body">
+                <p>Display and manipulate the Linux kernel's IP routing table.</p>
+                <p><strong>Use for:</strong> Viewing routing information and diagnosing routing issues.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.network_iproute') }}" class="btn btn-secondary">
+                        <i class="fas fa-angle-right"></i> Use IP Route Tool
+                    </a>
+                    <a href="https://linux.die.net/man/8/ip-route" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt"></i> Official Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IPtables -->
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-shield-alt"></i> IPtables</h5>
+            </div>
+            <div class="card-body">
+                <p>View and configure the Linux firewall rules, providing packet filtering and NAT capabilities.</p>
+                <p><strong>Use for:</strong> Inspecting firewall settings and network security configurations.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.network_iptables') }}" class="btn btn-danger">
+                        <i class="fas fa-angle-right"></i> Use IPtables Tool
+                    </a>
+                    <a href="https://netfilter.org/documentation/index.html" target="_blank" class="btn btn-outline-secondary">
+                        <i class="fas fa-external-link-alt"></i> Official Documentation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

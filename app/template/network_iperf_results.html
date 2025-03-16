@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-tachometer-alt"></i> iPerf3 Speed Test Results</h2>
+            <div>
+                <a href="{{ url_for('main.network_iperf') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to iPerf3 Tool
+                </a>
+                {% if command.status == 'running' %}
+                <a href="{{ url_for('main.stop_network_command', command_id=command.id) }}" class="btn btn-warning">
+                    <i class="fas fa-stop"></i> Stop Test
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Speed Test Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th width="15%">Server</th>
+                            {% set server_parts = command.command_text.split('-c') %}
+                            <td>{{ server_parts[1].split()[0] if server_parts|length > 1 else 'Unknown' }}</td>
+                            <th width="15%">Status</th>
+                            <td>
+                                <span id="command-status" class="badge 
+                                    {% if command.status == 'completed' %}bg-success
+                                    {% elif command.status == 'running' %}bg-primary
+                                    {% elif command.status == 'failed' %}bg-danger
+                                    {% elif command.status == 'stopped' %}bg-warning
+                                    {% elif command.status == 'timeout' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ command.status | capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>{{ command.command_text }}</td>
+                            <th>Start Time</th>
+                            <td>{{ command.start_time.strftime('%Y-%m-%d %H:%M:%S') if command.start_time else 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Duration</th>
+                            <td id="command-duration">{{ command.duration | round(2) if command.duration else 'In progress...' }} seconds</td>
+                            <th>End Time</th>
+                            <td id="command-end-time">{{ command.end_time.strftime('%Y-%m-%d %H:%M:%S') if command.end_time else 'In progress...' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if command.status == 'running' %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h5><i class="fas fa-sync fa-spin"></i> Speed Test in Progress</h5>
+            <p>Running iPerf3 speed test. Results will update automatically as they become available.</p>
+            <div class="progress mb-3">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Speed Test Results</h5>
+                <button class="btn btn-outline-light btn-sm" id="toggle-raw-output">
+                    <i class="fas fa-code"></i> Toggle Raw Output
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="pretty-results">
+                    <div id="iperf-results-container">
+                        {% if command.command_output %}
+                            {% set output_lines = command.command_output.split('\n') %}
+                            {% set summary_lines = [] %}
+                            {% set result_lines = [] %}
+                            {% set header_printed = false %}
+                            {% set start_idx = 0 %}
+                            {% set found_separator = false %}
+                            
+                            {% for line in output_lines %}
+                                {% if "- - - - - - - - - - - - - - - - - - -" in line %}
+                                    {% set found_separator = true %}
+                                {% elif found_separator %}
+                                    {% set summary_lines = summary_lines + [line] %}
+                                {% elif not line.startswith("Executing:") and line.strip() and not header_printed %}
+                                    {% if "ID" in line and "Interval" in line and "Transfer" in line and "Bitrate" in line %}
+                                        {% set header_printed = true %}
+                                        {% set result_lines = result_lines + [line] %}
+                                    {% endif %}
+                                {% elif header_printed and line.strip() %}
+                                    {% set result_lines = result_lines + [line] %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if result_lines|length > 0 %}
+                                <h5>Test Summary</h5>
+                                <div class="row mb-4">
+                                    {% set avg_bitrate = "N/A" %}
+                                    {% set avg_transfer = "N/A" %}
+                                    {% set transfer_unit = "MB" %}
+                                    {% set bitrate_unit = "Mbits/sec" %}
+                                    
+                                    {% for line in summary_lines %}
+                                        {% if "sender" in line %}
+                                            {% set parts = line.split() %}
+                                            {% if parts|length >= 8 %}
+                                                {% set avg_transfer = parts[4] %}
+                                                {% set transfer_unit = parts[5] %}
+                                                {% set avg_bitrate = parts[6] %}
+                                                {% set bitrate_unit = parts[7] %}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h1 class="display-4">{{ avg_bitrate }}</h1>
+                                                <p class="mb-0">Average Bitrate ({{ bitrate_unit }})</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h1 class="display-4">{{ avg_transfer }}</h1>
+                                                <p class="mb-0">Total Transfer ({{ transfer_unit }})</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5>Detailed Results</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        {% set header_parts = result_lines[0].split() if result_lines|length > 0 else [] %}
+                                        <thead>
+                                            <tr>
+                                                {% for part in header_parts %}
+                                                    <th>{{ part }}</th>
+                                                {% endfor %}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for i in range(1, result_lines|length) %}
+                                                {% set line = result_lines[i] %}
+                                                {% if not "- - - -" in line and line.strip() %}
+                                                    <tr>
+                                                        {% set parts = line.split() %}
+                                                        {% for part in parts %}
+                                                            <td>{{ part }}</td>
+                                                        {% endfor %}
+                                                        
+                                                        {# Fill in any missing columns to match header #}
+                                                        {% for j in range(parts|length, header_parts|length) %}
+                                                            <td>-</td>
+                                                        {% endfor %}
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% elif command.status == 'completed' or command.status == 'failed' %}
+                                <div class="alert alert-warning">
+                                    <p><i class="fas fa-exclamation-triangle"></i> No structured results found in the output. There might have been an error with the iPerf test. Please check the raw output for details.</p>
+                                </div>
+                            {% else %}
+                                <p>Waiting for test results...</p>
+                            {% endif %}
+                        {% else %}
+                            <p>No output available yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Raw output (hidden by default) -->
+                <div id="raw-output" style="display: none;">
+                    <pre id="command-output" class="bg-dark text-light p-3" style="max-height: 400px; overflow-y: auto; font-size: 0.85rem;">{{ command.command_output|default('No output available.') }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if command.status == 'completed' %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Understanding iPerf3 Results</h5>
+            </div>
+            <div class="card-body">
+                <p>iPerf3 is a tool for active measurements of the maximum achievable bandwidth on IP networks. Here's how to interpret the results:</p>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Bitrate</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>The bitrate represents the speed at which data was transmitted during the test.</p>
+                                <ul>
+                                    <li><strong>Mbits/sec (Megabits per second)</strong>: Divide by 8 to get MB/s (Megabytes per second).</li>
+                                    <li><strong>Typical good values:</strong>
+                                        <ul>
+                                            <li>Home internet: 50-300 Mbits/sec</li>
+                                            <li>LAN/Ethernet: 800-950 Mbits/sec (for gigabit connection)</li>
+                                            <li>10 Gigabit connections: 9000+ Mbits/sec</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Transfer</h6>
+                            </div>
+                            <div class="card-body">
+                                <p>The total amount of data transferred during the test.</p>
+                                <ul>
+                                    <li><strong>MBytes</strong>: Megabytes of data (1 Byte = 8 bits)</li>
+                                    <li><strong>GBytes</strong>: Gigabytes of data (1024 MBytes)</li>
+                                    <li>The total transfer depends on both the speed of the connection and the duration of the test.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Factors Affecting Results</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li><strong>Network congestion</strong>: Other traffic on your network can reduce bandwidth.</li>
+                                    <li><strong>Server load</strong>: The iPerf server might be busy with other tests.</li>
+                                    <li><strong>Network devices</strong>: Routers, switches, and firewalls can all limit throughput.</li>
+                                    <li><strong>Protocol overhead</strong>: TCP includes acknowledgments and flow control that reduce raw throughput.</li>
+                                    <li><strong>Distance</strong>: Greater distance to the server typically increases latency and can reduce throughput.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h6 class="mb-0">Tips for Better Results</h6>
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li><strong>Use multiple streams</strong>: Add the <code>-P</code> parameter followed by the number of parallel streams (e.g., <code>-P 4</code>).</li>
+                                    <li><strong>Try UDP</strong>: Use <code>-u</code> to test with UDP instead of TCP.</li>
+                                    <li><strong>Test with different servers</strong>: Results can vary significantly between different iPerf servers.</li>
+                                    <li><strong>Test at different times</strong>: Network performance often varies throughout the day.</li>
+                                    <li><strong>Increase test duration</strong>: Longer tests (using <code>-t</code> parameter) can provide more accurate average results.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleRawBtn = document.getElementById('toggle-raw-output');
+        const prettyResults = document.getElementById('pretty-results');
+        const rawOutput = document.getElementById('raw-output');
+        
+        toggleRawBtn.addEventListener('click', function() {
+            if (prettyResults.style.display === 'none') {
+                prettyResults.style.display = 'block';
+                rawOutput.style.display = 'none';
+                toggleRawBtn.innerHTML = '<i class="fas fa-code"></i> Toggle Raw Output';
+            } else {
+                prettyResults.style.display = 'none';
+                rawOutput.style.display = 'block';
+                toggleRawBtn.innerHTML = '<i class="fas fa-chart-bar"></i> Toggle Pretty Output';
+            }
+        });
+        
+        {% if command.status == 'running' %}
+        // Poll for command status updates
+        function updateCommandStatus() {
+            fetch('{{ url_for("main.network_command_status", command_id=command.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Update status
+                    const statusElem = document.getElementById('command-status');
+                    statusElem.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                    
+                    // Update status badge class
+                    statusElem.className = 'badge';
+                    if (data.status === 'completed') {
+                        statusElem.classList.add('bg-success');
+                    } else if (data.status === 'running') {
+                        statusElem.classList.add('bg-primary');
+                    } else if (data.status === 'failed') {
+                        statusElem.classList.add('bg-danger');
+                    } else if (data.status === 'stopped') {
+                        statusElem.classList.add('bg-warning');
+                    } else if (data.status === 'timeout') {
+                        statusElem.classList.add('bg-danger');
+                    } else {
+                        statusElem.classList.add('bg-secondary');
+                    }
+                    
+                    // Update duration and end time
+                    if (data.duration !== null) {
+                        document.getElementById('command-duration').textContent = data.duration.toFixed(2) + ' seconds';
+                    }
+                    
+                    // If command is complete, reload the page to show results
+                    if (data.status === 'completed' || data.status === 'failed' || data.status === 'stopped' || data.status === 'timeout') {
+                        location.reload();
+                    } else {
+                        // Continue polling
+                        setTimeout(updateCommandStatus, 2000); // Poll every 2 seconds
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating command status:', error);
+                    setTimeout(updateCommandStatus, 5000);  // Retry after 5s if there's an error
+                });
+        }
+        
+        function updateCommandOutput() {
+            fetch('{{ url_for("main.network_command_output", command_id=command.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.output) {
+                        document.getElementById('command-output').textContent = data.output;
+                        
+                        // This would be complex to implement in JS on the fly
+                        // For simplicity, we'll just reload the page periodically when running
+                        if (data.status === 'running') {
+                            setTimeout(() => location.reload(), 5000); // Reload every 5 seconds
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating command output:', error);
+                });
+        }
+        
+        // Start polling
+        setTimeout(updateCommandStatus, 1000); // Start status polling after 1 second
+        updateCommandOutput(); // Initial output update
+        {% endif %}
+    });
+</script>
+{% endblock %}

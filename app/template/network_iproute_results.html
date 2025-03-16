@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-terminal"></i> {{ command.tool | capitalize }} Results</h2>
+            <div>
+                <a href="{{ url_for('main.network_' + command.tool) }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to {{ command.tool | capitalize }} Tool
+                </a>
+                {% if command.status == 'running' %}
+                <a href="{{ url_for('main.stop_network_command', command_id=command.id) }}" class="btn btn-warning">
+                    <i class="fas fa-stop"></i> Stop Command
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Command Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th width="15%">Tool</th>
+                            <td>{{ command.tool | capitalize }}</td>
+                            <th width="15%">Status</th>
+                            <td>
+                                <span id="command-status" class="badge 
+                                    {% if command.status == 'completed' %}bg-success
+                                    {% elif command.status == 'running' %}bg-primary
+                                    {% elif command.status == 'failed' %}bg-danger
+                                    {% elif command.status == 'stopped' %}bg-warning
+                                    {% elif command.status == 'timeout' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ command.status | capitalize }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>{{ command.command_text }}</td>
+                            <th>Start Time</th>
+                            <td>{{ command.start_time.strftime('%Y-%m-%d %H:%M:%S') if command.start_time else 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Duration</th>
+                            <td id="command-duration">{{ command.duration | round(2) if command.duration else 'In progress...' }} seconds</td>
+                            <th>End Time</th>
+                            <td id="command-end-time">{{ command.end_time.strftime('%Y-%m-%d %H:%M:%S') if command.end_time else 'In progress...' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if command.status == 'running' %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            <h5><i class="fas fa-sync fa-spin"></i> Command in Progress</h5>
+            <p>The command is still running. Results will update automatically as they become available.</p>
+            <div class="progress mb-3">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Command Output</h5>
+                <div>
+                    <button class="btn btn-outline-light btn-sm" id="copy-output">
+                        <i class="fas fa-copy"></i> Copy Output
+                    </button>
+                    <button class="btn btn-outline-light btn-sm ms-2" id="toggle-wrap">
+                        <i class="fas fa-text-width"></i> Toggle Word Wrap
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <pre id="command-output" class="bg-dark text-light p-3" style="max-height: 500px; overflow-y: auto; font-size: 0.85rem; white-space: pre;">{{ command.command_output|default('No output available.') }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if command.status == 'failed' %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="alert alert-danger">
+            <h5><i class="fas fa-exclamation-circle"></i> Command Failed</h5>
+            <p>The command encountered an error and could not be completed successfully. Please check the output for error details.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if command.status == 'timeout' %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="alert alert-warning">
+            <h5><i class="fas fa-clock"></i> Command Timed Out</h5>
+            <p>The command took too long to complete and was automatically terminated. Please try again with different parameters or check network connectivity.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Copy output to clipboard
+        const copyBtn = document.getElementById('copy-output');
+        const commandOutput = document.getElementById('command-output');
+        
+        copyBtn.addEventListener('click', function() {
+            // Create a temporary textarea element to copy the text
+            const textarea = document.createElement('textarea');
+            textarea.value = commandOutput.textContent;
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                // Show success message
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Output';
+                }, 3000);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+                copyBtn.innerHTML = '<i class="fas fa-times"></i> Failed!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Output';
+                }, 3000);
+            }
+            
+            document.body.removeChild(textarea);
+        });
+        
+        // Toggle word wrap
+        const toggleWrapBtn = document.getElementById('toggle-wrap');
+        
+        toggleWrapBtn.addEventListener('click', function() {
+            if (commandOutput.style.whiteSpace === 'pre-wrap') {
+                commandOutput.style.whiteSpace = 'pre';
+                toggleWrapBtn.innerHTML = '<i class="fas fa-text-width"></i> Toggle Word Wrap';
+            } else {
+                commandOutput.style.whiteSpace = 'pre-wrap';
+                toggleWrapBtn.innerHTML = '<i class="fas fa-align-left"></i> Toggle Word Wrap';
+            }
+        });
+        
+        {% if command.status == 'running' %}
+        // Poll for command status updates
+        function updateCommandStatus() {
+            fetch('{{ url_for("main.network_command_status", command_id=command.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    // Update status
+                    const statusElem = document.getElementById('command-status');
+                    statusElem.textContent = data.status.charAt(0).toUpperCase() + data.status.slice(1);
+                    
+                    // Update status badge class
+                    statusElem.className = 'badge';
+                    if (data.status === 'completed') {
+                        statusElem.classList.add('bg-success');
+                    } else if (data.status === 'running') {
+                        statusElem.classList.add('bg-primary');
+                    } else if (data.status === 'failed') {
+                        statusElem.classList.add('bg-danger');
+                    } else if (data.status === 'stopped') {
+                        statusElem.classList.add('bg-warning');
+                    } else if (data.status === 'timeout') {
+                        statusElem.classList.add('bg-danger');
+                    } else {
+                        statusElem.classList.add('bg-secondary');
+                    }
+                    
+                    // Update duration and end time
+                    if (data.duration !== null) {
+                        document.getElementById('command-duration').textContent = data.duration.toFixed(2) + ' seconds';
+                    }
+                    
+                    // If command is complete, reload the page to show results
+                    if (data.status === 'completed' || data.status === 'failed' || data.status === 'stopped' || data.status === 'timeout') {
+                        location.reload();
+                    } else {
+                        // Continue polling
+                        setTimeout(updateCommandStatus, 2000); // Poll every 2 seconds
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating command status:', error);
+                    setTimeout(updateCommandStatus, 5000);  // Retry after 5s if there's an error
+                });
+        }
+        
+        function updateCommandOutput() {
+            fetch('{{ url_for("main.network_command_output", command_id=command.id) }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.output) {
+                        commandOutput.textContent = data.output;
+                        
+                        // Auto-scroll to bottom
+                        commandOutput.scrollTop = commandOutput.scrollHeight;
+                    }
+                    
+                    // Continue polling for output if command is running
+                    if (data.status === 'running' || data.status === 'pending') {
+                        setTimeout(updateCommandOutput, 1000); // Update output every second
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating command output:', error);
+                    setTimeout(updateCommandOutput, 2000);
+                });
+        }
+        
+        // Start polling
+        setTimeout(updateCommandStatus, 1000); // Start status polling after 1 second
+        updateCommandOutput(); // Initial output update
+        {% endif %}
+    });
+</script>
+{% endblock %}
