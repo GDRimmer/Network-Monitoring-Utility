@@ -11,10 +11,7 @@ This application is a comprehensive network monitoring utility built with Flask 
 - Real-time scan monitoring and visualized results
 - Searchable scan history and detailed host information
 
-<p align="center">
-  <img src="images/host_detail_view.png" alt="NMAP Scanning" width="800">
-  <em>Configuring and running a comprehensive network scan</em>
-</p>
+![NMAP Scan Results](images/host_detail_view.png)
 
 ### 📋 ARP Table Management
 - Complete view of your network's ARP cache with vendor identification
