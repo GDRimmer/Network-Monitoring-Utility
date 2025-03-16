@@ -132,7 +132,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- [Claude] (https://claude.ai/) for powerful coding support
+- [Claude](https://claude.ai/) for powerful coding support
 - [NMAP](https://nmap.org/) for the powerful network scanning capabilities
 - [TCPDump](https://www.tcpdump.org/) for packet capture functionality
 - [Flask](https://flask.palletsprojects.com/) for the web framework
