@@ -1,0 +1,329 @@
+/* Dark mode styles */
+[data-theme="dark"] {
+    /* Base colors */
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --border-color: #404040;
+    --card-bg: #1e1e1e;
+    --input-bg: #2d2d2d;
+    --hover-bg: rgba(255, 255, 255, 0.1);
+    
+    /* Bootstrap overrides */
+    --bs-body-bg: var(--bg-color);
+    --bs-body-color: var(--text-color);
+    --bs-border-color: var(--border-color);
+    
+    /* Set base theme */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Base elements */
+[data-theme="dark"] body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Navbar */
+[data-theme="dark"] .navbar-dark {
+    background-color: #000 !important;
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: #1e1e1e !important;
+    color: var(--text-color) !important;
+}
+
+/* Cards */
+[data-theme="dark"] .card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .card-header {
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .card-footer {
+    border-top-color: var(--border-color);
+}
+
+/* Tables */
+[data-theme="dark"] .table {
+    color: #e0e0e0 !important; /* Ensure all table text is light-colored */
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .table td {
+    color: #e0e0e0 !important; /* Force light color on all table cells */
+}
+
+[data-theme="dark"] .table-bordered {
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .table-hover > tbody > tr:hover {
+    background-color: rgba(255, 255, 255, 0.075);
+}
+
+/* Table headers in dark mode */
+[data-theme="dark"] th,
+[data-theme="dark"] .table > thead > tr > th,
+[data-theme="dark"] .table > tbody > tr > th {
+    background-color: #2d2d2d !important; /* Darker background for headers */
+    color: #e0e0e0 !important; /* Light text for contrast */
+    border-color: #404040 !important;
+}
+
+/* Card headers that contain tables often have light backgrounds too */
+[data-theme="dark"] .card-header {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+/* Specifically target bg-light elements that might be used for headers */
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .table .bg-light {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+}
+
+/* Form elements */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    border-color: #80bdff;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+    color: #888;
+}
+
+[data-theme="dark"] .form-text {
+    color: #aaa;
+}
+
+/* Alerts */
+[data-theme="dark"] .alert-info {
+    background-color: #0d3a58;
+    border-color: #0c5460;
+    color: #d1ecf1;
+}
+
+[data-theme="dark"] .alert-success {
+    background-color: #1e4620;
+    border-color: #155724;
+    color: #d4edda;
+}
+
+[data-theme="dark"] .alert-warning {
+    background-color: #533f03;
+    border-color: #856404;
+    color: #fff3cd;
+}
+
+[data-theme="dark"] .alert-danger {
+    background-color: #5a1c1c;
+    border-color: #721c24;
+    color: #f8d7da;
+}
+
+/* Code and pre blocks */
+[data-theme="dark"] pre {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] code {
+    background-color: #2d2d2d;
+}
+
+/* Dropdown menus */
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .dropdown-item:hover, 
+[data-theme="dark"] .dropdown-item:focus {
+    background-color: var(--hover-bg);
+    color: var(--text-color);
+}
+
+/* List groups */
+[data-theme="dark"] .list-group-item {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+/* Modal */
+[data-theme="dark"] .modal-content {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: var(--border-color);
+}
+
+/* Toggle switch styling */
+.theme-switch {
+    display: inline-block;
+    height: 34px;
+    position: relative;
+    width: 60px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch-wrapper em {
+    margin-left: 10px;
+    font-size: 0.9rem;
+}
+
+.slider {
+    background-color: #ccc;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    background-color: #fff;
+    bottom: 4px;
+    content: "";
+    height: 26px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 26px;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #66bb6a;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider .mode-icon {
+    color: #fff;
+    position: absolute;
+    transform: translateY(-50%);
+    top: 50%;
+    font-size: 14px;
+}
+
+.slider .mode-icon.sun {
+    opacity: 0;
+    right: 10px;
+}
+
+.slider .mode-icon.moon {
+    opacity: 1;
+    left: 10px;
+}
+
+input:checked + .slider .mode-icon.sun {
+    opacity: 1;
+}
+
+input:checked + .slider .mode-icon.moon {
+    opacity: 0;
+}
+
+/* Fix text-muted color in dark mode */
+[data-theme="dark"] .text-muted {
+    color: #a0a0a0 !important;
+}
+
+/* Fix jumbotron in dark mode */
+[data-theme="dark"] .jumbotron.bg-light {
+    background-color: #1e1e1e !important;
+}
+
+/* Accordion styling for dark mode */
+[data-theme="dark"] .accordion-item {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .accordion-button {
+    background-color: #2d2d2d;
+    color: #e0e0e0;
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .accordion-button:not(.collapsed) {
+    background-color: #3a3a3a;
+    color: #ffffff;
+}
+
+[data-theme="dark"] .accordion-button:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="dark"] .accordion-button::after {
+    filter: invert(1); /* Invert the collapse/expand icon */
+}
+
+[data-theme="dark"] .accordion-body {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+/* Guide sections and info boxes */
+[data-theme="dark"] .card .card-body p,
+[data-theme="dark"] .card .card-body li,
+[data-theme="dark"] .card .card-body dl,
+[data-theme="dark"] .card .card-body dt,
+[data-theme="dark"] .card .card-body dd {
+    color: #e0e0e0 !important;
+}
+
+/* Specifically target about sections and guides */
+[data-theme="dark"] #arpInfoAccordion .accordion-body,
+[data-theme="dark"] #captureGuideAccordion .accordion-body,
+[data-theme="dark"] #commonPortsAccordion .accordion-body {
+    background-color: #2d2d2d;
+    color: #f0f0f0;
+}
+
+/* Make all info text in cards more readable */
+[data-theme="dark"] .card-body strong,
+[data-theme="dark"] .card-body .text-muted,
+[data-theme="dark"] .card-body small {
+    color: #e0e0e0 !important;
+}
