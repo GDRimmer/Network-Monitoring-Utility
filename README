@@ -4,9 +4,22 @@ Overview
 
 This application is a comprehensive network monitoring utility built with Flask that integrates multiple network tools:
 
-1. **NMAP Scanner**: Run configurable network scans with customizable parameters
-2. **ARP Table Viewer**: View and manage the system's ARP table cache
-3. **TCPDump Packet Capture**: Capture and analyze network packets
+## Core Features
+
+### 🔍 NMAP Network Scanning
+- Multiple scan types (simple, comprehensive, OS detection, service version)
+- Real-time scan monitoring and visualized results
+- Searchable scan history and detailed host information
+
+### 📋 ARP Table Management
+- Complete view of your network's ARP cache with vendor identification
+- Active cache manipulation with targeted ping functionality
+- Export capabilities for documentation and analysis
+
+### 📊 TCPDump Packet Capture
+- Intuitive interface for configuring and executing packet captures
+- Protocol, port, and host filtering options
+- PCAP file generation and download for analysis in Wireshark
 
 Core Components
 
@@ -104,6 +117,25 @@ Core Components
 - Access control based on user ownership
 - Secure password storage
 - Protection against malicious NMAP arguments
+
+## Roadmap
+
+- Network traffic visualization dashboard
+- Scheduled scanning capabilities
+- Real-time network anomaly detection
+- Expanded protocol analysis tools
+- REST API for integration with other security tools
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [Claude] (https://claude.ai/) for powerful coding support
+- [NMAP](https://nmap.org/) for the powerful network scanning capabilities
+- [TCPDump](https://www.tcpdump.org/) for packet capture functionality
+- [Flask](https://flask.palletsprojects.com/) for the web framework
 
 Network Monitoring Utility - Requirements
 
