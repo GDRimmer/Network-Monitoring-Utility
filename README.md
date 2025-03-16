@@ -21,6 +21,18 @@
 
 ![TCP Dump](images/tcp_dump_active.png)
 
+## Quick Start
+1. Ensure all dependencies are installed
+2. Clone this repo
+   - git clone https://github.com/GDRimmer/network-monitoring-utility.git
+   - cd network-monitoring-utility
+3. Setup the database
+   - python create_db.py
+5. Run the application
+   - python run.py
+7. Access the web UI at http://<your_IP_address:5000
+8. Create an account
+
 Core Components
 
 1. Application Setup and Configuration
