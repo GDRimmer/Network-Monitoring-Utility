@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.models import User
 from app.forms import LoginForm, RegistrationForm
+from urllib.parse import urlparse
 import re
 
 # Create authentication Blueprint
@@ -12,10 +13,13 @@ def is_safe_url(url):
     """Check if URL is safe to redirect to (doesn't contain a netloc)"""
     if not url:
         return False
-    # Check if URL contains a netloc (domain)
-    # This is a simplified version of what url_parse would do
-    pattern = re.compile(r'^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$')
-    return not bool(pattern.match(url))
+    
+    # Parse the URL using urllib's reliable parser
+    parsed_url = urlparse(url)
+    
+    # A URL is safe if it doesn't have a network location (domain) or scheme
+    # This ensures it's a relative URL that stays on the same site
+    return not (parsed_url.netloc or parsed_url.scheme)
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
