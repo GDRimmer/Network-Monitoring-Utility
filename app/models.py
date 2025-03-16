@@ -107,3 +107,18 @@ class PacketCapture(db.Model):
     
     def __repr__(self):
         return f'<PacketCapture {self.id} {self.interface}>'
+
+class NetworkCommand(db.Model):
+    """NetworkCommand model to store network command details and results"""
+    id = db.Column(db.Integer, primary_key=True)
+    tool = db.Column(db.String(64))  # ping, traceroute, dig, etc.
+    command_text = db.Column(db.String(512))  # Full command that was executed
+    status = db.Column(db.String(20), default='pending')  # pending, running, completed, failed, stopped, timeout
+    start_time = db.Column(db.DateTime, default=datetime.utcnow)
+    end_time = db.Column(db.DateTime)
+    duration = db.Column(db.Float)  # Duration in seconds
+    command_output = db.Column(db.Text)  # Raw command output
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
+    def __repr__(self):
+        return f'<NetworkCommand {self.id} {self.tool}>'

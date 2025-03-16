@@ -6,26 +6,25 @@ import csv
 import io
 import os
 
-
 def get_arp_table():
     """
     Get the current ARP table from the system
-
+    
     Returns:
         list: List of dictionaries containing IP, MAC, and interface information
     """
     try:
         # Run the arp -a command
         result = subprocess.run(['arp', '-a'], capture_output=True, text=True, check=True)
-
+        
         # Parse the output
         arp_entries = []
-
+        
         for line in result.stdout.splitlines():
             # Skip empty lines
             if not line.strip():
                 continue
-
+                
             # Parse the line - typical format: hostname (ip) at mac on interface
             match = re.search(r'(.*) \(([0-9\.]+)\) at ([0-9a-f:]+) \[(\w+)\] on ([^\s]+)', line)
             if match:
@@ -64,17 +63,16 @@ def get_arp_table():
                             'interface': 'unknown',
                             'timestamp': datetime.now()
                         })
-
+        
         return arp_entries
     except Exception as e:
         print(f"Error getting ARP table: {str(e)}")
         return []
 
-
 def clear_arp_cache():
     """
     Clear the ARP cache
-
+    
     Returns:
         bool: True if successful, False otherwise
     """
@@ -87,41 +85,39 @@ def clear_arp_cache():
         print(f"Error clearing ARP cache: {str(e)}")
         return False
 
-
 def get_vendor_from_mac(mac_address):
     """
     Get vendor information from MAC address (first 3 octets)
     Uses an expanded OUI (Organizationally Unique Identifier) database
-
+    
     Args:
         mac_address: MAC address string
-
+        
     Returns:
         str: Vendor name or unknown
     """
     if mac_address == 'incomplete':
         return 'Unknown'
-
+        
     # Normalize MAC address format (supports both : and - separators)
     normalized_mac = mac_address.lower().replace('-', ':')
     prefix = ':'.join(normalized_mac.split(':')[:3])
-
+    
     return MAC_VENDORS.get(prefix, 'Unknown')
-
 
 def export_arp_table_json(arp_entries):
     """
     Export the ARP table as JSON
-
+    
     Args:
         arp_entries: List of dictionaries containing ARP entries
-
+        
     Returns:
         str: JSON string
     """
     # Create a copy to avoid modifying the original data
     export_data = []
-
+    
     for entry in arp_entries:
         # Create a copy of the entry without the timestamp (which is not JSON serializable)
         export_entry = {
@@ -134,32 +130,31 @@ def export_arp_table_json(arp_entries):
             'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         export_data.append(export_entry)
-
+    
     return json.dumps(export_data, indent=4)
-
 
 def export_arp_table_csv(arp_entries):
     """
     Export the ARP table as CSV
-
+    
     Args:
         arp_entries: List of dictionaries containing ARP entries
-
+        
     Returns:
         str: CSV string
     """
     # Create a string buffer to write CSV data to
     output = io.StringIO()
-
+    
     # Define CSV fields
     fieldnames = ['hostname', 'ip_address', 'mac_address', 'vendor', 'interface', 'hw_type', 'timestamp']
-
+    
     # Create CSV writer
     writer = csv.DictWriter(output, fieldnames=fieldnames)
-
+    
     # Write header
     writer.writeheader()
-
+    
     # Write data
     for entry in arp_entries:
         writer.writerow({
@@ -171,13 +166,12 @@ def export_arp_table_csv(arp_entries):
             'hw_type': entry['hw_type'],
             'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         })
-
+    
     # Get the CSV content
     csv_content = output.getvalue()
     output.close()
-
+    
     return csv_content
-
 
 # Expanded MAC Vendor Database
 # Source: Common OUI prefixes from IEEE registry (abbreviated for code simplicity)
@@ -256,7 +250,7 @@ MAC_VENDORS = {
     'e8:04:0b': 'Apple',
     'f0:18:98': 'Apple',
     'f8:1e:df': 'Apple',
-
+    
     # Cisco devices
     '00:00:0c': 'Cisco',
     '00:01:42': 'Cisco',
@@ -305,7 +299,7 @@ MAC_VENDORS = {
     '00:0e:39': 'Cisco',
     '00:0e:83': 'Cisco',
     '00:0e:84': 'Cisco',
-
+    
     # Microsoft devices
     '00:03:ff': 'Microsoft',
     '00:0d:3a': 'Microsoft',
@@ -324,7 +318,7 @@ MAC_VENDORS = {
     '60:45:bd': 'Microsoft',
     '7c:1e:52': 'Microsoft',
     '7c:ed:8d': 'Microsoft',
-
+    
     # Intel devices
     '00:02:b3': 'Intel',
     '00:03:47': 'Intel',
@@ -370,7 +364,7 @@ MAC_VENDORS = {
     '00:24:d7': 'Intel',
     '00:26:c6': 'Intel',
     '00:26:c7': 'Intel',
-
+    
     # Dell devices
     '00:06:5b': 'Dell',
     '00:08:74': 'Dell',
@@ -396,7 +390,7 @@ MAC_VENDORS = {
     '00:24:e8': 'Dell',
     '00:25:64': 'Dell',
     '00:26:37': 'Dell',
-
+    
     # Samsung devices
     '00:00:f0': 'Samsung',
     '00:02:78': 'Samsung',
@@ -437,7 +431,7 @@ MAC_VENDORS = {
     '00:26:37': 'Samsung',
     '00:26:5d': 'Samsung',
     '00:26:5f': 'Samsung',
-
+    
     # VM/Hypervisor software
     '00:0c:29': 'VMware',
     '00:50:56': 'VMware',
@@ -447,7 +441,7 @@ MAC_VENDORS = {
     '08:00:27': 'VirtualBox',
     '52:54:00': 'QEMU/KVM',
     '00:16:3e': 'Xen',
-
+    
     # Network equipment manufacturers
     '00:30:f1': 'Accton',
     '00:01:38': 'Netgear',
@@ -510,7 +504,7 @@ MAC_VENDORS = {
     '00:1f:1f': 'Edimax',
     '00:80:48': 'Compex',
     '00:90:d8': 'Whitecross',
-
+    
     # IoT devices
     'b8:27:eb': 'Raspberry Pi Foundation',
     'dc:a6:32': 'Raspberry Pi',
@@ -528,7 +522,7 @@ MAC_VENDORS = {
     'fc:a6:67': 'Amazon',
     '40:b4:cd': 'Amazon',
     'f0:d2:f1': 'Amazon',
-
+    
     # Mobile devices
     '00:23:76': 'HTC',
     '00:ee:bd': 'HTC',

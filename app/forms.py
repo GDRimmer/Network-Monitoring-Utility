@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, IntegerField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Regexp, Length, NumberRange
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Regexp, Length, NumberRange, Optional
 from app.models import User
 
 class LoginForm(FlaskForm):
@@ -95,3 +95,62 @@ class PacketCaptureForm(FlaskForm):
                 ('lo', 'lo (Loopback)'),
                 ('any', 'any (All interfaces)')
             ]
+
+class PingForm(FlaskForm):
+    """Form for ping tool"""
+    host = StringField('Host/IP Address', validators=[DataRequired()])
+    count = IntegerField('Number of Packets', default=4, validators=[NumberRange(min=1, max=100)])
+    timeout = IntegerField('Timeout (seconds)', default=5, validators=[NumberRange(min=1, max=60)])
+    submit = SubmitField('Start Ping')
+
+class TracerouteForm(FlaskForm):
+    """Form for traceroute tool"""
+    host = StringField('Host/IP Address', validators=[DataRequired()])
+    max_hops = IntegerField('Maximum Hops', default=30, validators=[NumberRange(min=1, max=100)])
+    timeout = IntegerField('Timeout (seconds)', default=5, validators=[NumberRange(min=1, max=60)])
+    submit = SubmitField('Start Traceroute')
+
+class DigForm(FlaskForm):
+    """Form for dig DNS lookup"""
+    domain = StringField('Domain Name', validators=[DataRequired()])
+    record_type = SelectField('Record Type', choices=[
+        ('A', 'A - IPv4 Address'),
+        ('AAAA', 'AAAA - IPv6 Address'),
+        ('MX', 'MX - Mail Exchange'),
+        ('NS', 'NS - Name Server'),
+        ('TXT', 'TXT - Text Record'),
+        ('SOA', 'SOA - Start of Authority'),
+        ('ANY', 'ANY - All Records')
+    ])
+    submit = SubmitField('Start DNS Lookup')
+
+class IperfForm(FlaskForm):
+    """Form for iperf network performance test"""
+    server = StringField('Server IP/Hostname', validators=[DataRequired()])
+    port = IntegerField('Port', default=5201, validators=[NumberRange(min=1024, max=65535)])
+    duration = IntegerField('Test Duration (seconds)', default=10, validators=[NumberRange(min=1, max=300)])
+    protocol = SelectField('Protocol', choices=[
+        ('tcp', 'TCP'),
+        ('udp', 'UDP')
+    ])
+    bandwidth = StringField('Bandwidth Limit (for UDP)', validators=[Optional()], 
+                           description='e.g., 100M for 100 Mbits/sec')
+    submit = SubmitField('Start Performance Test')
+
+class IpRouteForm(FlaskForm):
+    """Form for ip route commands"""
+    action = SelectField('Action', choices=[
+        ('show', 'Show Routes'),
+        ('get', 'Get Route for Destination')
+    ])
+    destination = StringField('Destination IP (for Get)', validators=[Optional()])
+    submit = SubmitField('Execute Command')
+
+class IptablesForm(FlaskForm):
+    """Form for iptables commands"""
+    action = SelectField('Action', choices=[
+        ('list', 'List Rules'),
+        ('list_nat', 'List NAT Rules'),
+        ('list_mangle', 'List Mangle Rules')
+    ])
+    submit = SubmitField('Execute Command')
