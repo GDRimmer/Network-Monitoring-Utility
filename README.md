@@ -32,11 +32,6 @@ A comprehensive web-based network monitoring and analysis tool built with Flask.
 - **iPerf3**: Measure network bandwidth performance with real-time graphs
 - **Cross-tool integration** for comprehensive network analysis
 
-### 🌓 UI Enhancements
-- Dark mode support for reduced eye strain during extended use
-- Responsive design for desktop and mobile usage
-- Intuitive data visualization for all network tools
-
 ## Quick Start
 1. Ensure all dependencies are installed
 2. Clone this repo
@@ -63,13 +58,8 @@ A comprehensive web-based network monitoring and analysis tool built with Flask.
 
 3. NMAP Scanning Module
 - **Controllers**:
-  - `main.py`: Contains routes for NMAP scanning functionality
+  - `main.py`: Contains routes for NMAP functionality
   - Supports starting, monitoring, and viewing scan results
-
-- **Models**:
-  - `Scan`: Stores scan configurations and results
-  - `Host`: Discovered hosts from scans
-  - `Port`: Open ports on discovered hosts
 
 - **Supporting Components**:
   - `scanner.py`: Core NMAP integration and result parsing
@@ -104,67 +94,6 @@ A comprehensive web-based network monitoring and analysis tool built with Flask.
 
 - **Models**:
   - Generic command model for storing network tool operations
-
-- **Views**:
-  - Tool-specific interfaces (`network-ping-fix-updated.html`, `network-traceroute-fix-updated.html`, etc.)
-  - Data visualization templates for analysis results
-
-7. User Interface
-- **Templates**:
-  - `base.html`: Base template with navigation and dark mode toggle
-  - NMAP-related views: `index.html`, `scan_results.html`, `scan_history.html`, etc.
-  - ARP-related views: `arp_table.html`
-  - TCPDump-related views: `packet_captures.html`, `capture_details.html`
-  - Network tool views: Various tool-specific templates with visualization
-
-- **Static Assets**:
-  - `style.css`: Custom styling
-  - `dark-mode.css`: Styling for dark mode
-  - `main.js`: Client-side functionality
-  - `dark-mode.js`: Dark mode toggle functionality
-
-## Database Schema
-
-1. **User**
-   - Authentication information
-   - Relationship to scans and captures
-
-2. **Scan**
-   - Target, scan type, arguments
-   - Status and timestamps
-   - Result data and command output
-   - Relationship to discovered hosts
-
-3. **Host**
-   - IP address, hostname, MAC address, OS
-   - Relationship to discovered ports
-
-4. **Port**
-   - Port number, protocol, service, state
-   - Relationship to host
-
-5. **PacketCapture**
-   - Interface, protocol filters, host/port filters
-   - Status and timestamps
-   - Capture file metadata
-
-6. **NetworkCommand**
-   - Command type, arguments, status
-   - Timestamps and duration
-   - Command output and result data
-
-## File Management
-
-- Upload directory for scan results and capture files
-- Secure file naming and access control
-- Support for downloading capture files
-
-## Security Features
-
-- Input sanitization for command arguments
-- Access control based on user ownership
-- Secure password storage
-- Protection against malicious command arguments
 
 ## Roadmap
 
@@ -209,8 +138,6 @@ www-data ALL=(ALL) NOPASSWD: /usr/sbin/tcpdump
 
 # Allow www-data to access ARP table
 www-data ALL=(ALL) NOPASSWD: /usr/sbin/arp
-www-data ALL=(ALL) NOPASSWD: /usr/bin/ip neigh show
-www-data ALL=(ALL) NOPASSWD: /usr/bin/ip neigh flush
 
 # Allow www-data to run ping without password
 www-data ALL=(ALL) NOPASSWD: /usr/bin/ping
@@ -223,16 +150,6 @@ www-data ALL=(ALL) NOPASSWD: /usr/bin/dig
 
 # Allow www-data to run iPerf3 without password
 www-data ALL=(ALL) NOPASSWD: /usr/bin/iperf3
-```
-
-3. Set proper permissions on the sudo configuration file:
-```bash
-sudo chmod 440 /etc/sudoers.d/network-utility
-```
-
-4. Verify the configuration:
-```bash
-sudo visudo -c
 ```
 
 ### Python Package Requirements
