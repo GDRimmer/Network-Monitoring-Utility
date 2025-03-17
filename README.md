@@ -105,6 +105,7 @@ A comprehensive web-based network monitoring and analysis tool built with Flask.
 - Expanded protocol analysis tools
 - REST API for integration with other security tools
 - Support for additional network diagnostic tools
+- Docker Image for easy deployment and use
 
 ## Requirements
 
