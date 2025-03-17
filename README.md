@@ -32,6 +32,8 @@ A comprehensive web-based network monitoring and analysis tool built with Flask.
 - **iPerf3**: Measure network bandwidth performance with real-time graphs
 - **Cross-tool integration** for comprehensive network analysis
 
+![Ping Tool](images/ping.png)
+
 ## Quick Start
 1. Ensure all dependencies are installed
 2. Clone this repo
